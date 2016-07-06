@@ -17,10 +17,11 @@ html {
   margin: 1em auto;
   border-top: 5px solid #69c773;
   box-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  float: left;
 }
 
 h1 {
-	margin-top: 0;
+  margin-top: 0;
 }
 
 #status {
@@ -40,13 +41,22 @@ h1 {
 }
 
 #stat{
-  width: 400px;
+  width: 350px;
   height: 10px;
+  margin-top: 4px;
+  margin-left: 15px;
   float: left;
 }
 
 #timer{
   float: right;
+}
+
+.message{
+  width: 400px;
+  word-wrap: break-word;
+  float: left;
+  /*/!*float: left;*!/*/
 }
 
 
@@ -58,27 +68,36 @@ ul {
 }
 
 ul li {
-  padding: 0.5rem 0.75rem;
+  float: left;
+  padding: 1rem 0.75rem;
   border-bottom: 1px solid #EEE;
+  max-width: 650px;
+  word-wrap: break-word;
 }
 
 ul li:first-child {
   border-top: 1px solid #EEE;
+  background-color: #d5f94a;
 }
 
 ul li:last-child {
-  background-color: #d5f94a;
+  /*background-color: #d5f94a;*/
 }
 
 ul li span {
   display: inline-block;
-  width: 90px;
+  width: 300px;
   font-weight: bold;
   color: #999;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+.text{
+  font-size: 0.9rem;
+}
+
 
 .sent {
   background-color: #F7F7F7;

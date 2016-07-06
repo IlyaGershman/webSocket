@@ -13,6 +13,7 @@ window.onload = function() {
   var messagesM = [];
   var counterT = 0;
   var counterM = 0;
+  var unansweredMsgs = 0;
 
   function WebSocketWrapper(){
     this.socket = {};
@@ -20,6 +21,7 @@ window.onload = function() {
     this.open = function () {
 
       this.socket = new WebSocket('ws://echo.websocket.org');
+      console.log(this.socket);
 
       // making sure that if we receive error text field will be disabled and status test receive red font color
       this.socket.onerror = function(error) {
@@ -46,39 +48,44 @@ window.onload = function() {
 
     this.send = function (message) {
       // checking if the message is submitted by user or our test using test property that adds in 'isAlive' function
-        if (!message.test){
+      if (!message.test){
 
-          this.socket.send(JSON.stringify(message));
-          // counter is used as an index of msgs array to keep control on messages that will be
-          // received from server and makign sure that they won't get mixed as we discussed
-          messagesM[counterM] = message;
+        this.socket.send(JSON.stringify(message));
+        // counter is used as an index of msgs array to keep control on messages that will be
+        // received from server and makign sure that they won't get mixed as we discussed
+        messagesM[counterM] = message;
 
-          // creating li's with 'waiting message' adding an id to li to use it when the response from server is received
-          var li = document.createElement('li');
-              li.setAttribute('class','sent');
-              li.innerHTML = '<span>Sent:</span> waiting...';
-              li.setAttribute('id', 'li'+counterM);
-          messagesList.appendChild(li);
-          // next message wil receive index++ in the array
-          counterM++;
+        // creating li's with 'waiting message' adding an id to li to use it when the response from server is received
+        var li = document.createElement('li');
+        li.setAttribute('class','sent');
+        li.innerHTML = '<div><div class="message">'+ message.msg +'</div><div style="color: red; float: right;"> waiting...</div></div>';
+        li.setAttribute('id', 'li'+counterM);
+        messagesList.insertBefore(li, messagesList.firstChild);
+        // next message wil receive index++ in the array
+        counterM++;
 
-          this.socket.onmessage = function (event) {
-            // parsing server's response getting index, message and startTime
-            var index = JSON.parse(event.data).counter;
-            var text = JSON.parse(event.data).msg;
-            var startDate = JSON.parse(event.data).timeStart;
-            var date2 = new Date();
+        this.socket.onmessage = function (event) {
+          // parsing server's response getting index, message and startTime
+          var index = JSON.parse(event.data).counter;
+          var text = JSON.parse(event.data).msg;
+          var startDate = JSON.parse(event.data).timeStart;
+          var date2 = new Date();
 
-            //calculating time difference to add it to li element
-            messagesM[index].timeDifference = (date2.getTime() - startDate)/1000;
+          //calculating time difference to add it to li element
+          messagesM[index].timeDifference = (date2.getTime() - startDate)/1000;
 
-            //find proper li by id using index in the server's response
-            var li = document.getElementById('li'+index);
-                li.innerHTML = '<span>Received:</span>' + text + '  (' + messagesM[index].timeDifference + ')';
-          };
-          // clearing the text area
-          messageField.value = '';
-        } else {
+          //find proper li by id using index in the server's response
+          var li = document.getElementById('li'+index);
+          li.innerHTML = '<div><div class="message">'+ text +'</div><div style="color: green; float: right"> ' +
+          'processed(' + messagesM[index].timeDifference.toFixed(3) + 'ms)</div></div>';
+
+          //li.innerHTML = '<tr><td>'+ text +'</td><td>processed(' + messagesM[index].timeDifference + 'ms)</td></tr>';
+        };
+        // clearing the text area
+        messageField.value = '';
+      } else {
+        // making sure that socket is on ready state
+        if (this.socket.readyState < 3){
           // the message was sent for test purpose from 'isAlive' function.
           // Using the same technique with array to calculate time difference properly
           this.socket.send(message.msg);
@@ -87,7 +94,11 @@ window.onload = function() {
             var date3 = new Date();
             messagesT[event.data].timeDifference = (date3 - messagesT[event.data].timeStart)/1000;
           }
+        }else{
+          // if socket is not on ready state trying to open it once again
+          this.open();
         }
+      }
     };
   }
 
@@ -97,6 +108,7 @@ window.onload = function() {
     // checking that serves is alive by sending a test message. In message object creating property test to use it in
     // WebSocketWrapper method 'send'
     this.isAlive = function () {
+
       var date = new Date();
       this.socket.send({msg: counterT, timeStart: date.getTime(), test: true});
       //counter is used for the possibility to control timestamps and calculating time intervals.
@@ -115,14 +127,24 @@ window.onload = function() {
             average += entry.timeDifference;
             // creating counter to make sure that if there is no 'timeDifference' property our calculations would be correct
             counter++;
+          } else {
+            // if there are messages without timeDifference it means that server didn't answer
+            unansweredMsgs++;
           }
         });
+
+        // calculating time of all messages without answer
+        var unansweredTime = 2 + 2*(unansweredMsgs-1);
+        unansweredTime === 2 ? unansweredTime = 0 : unansweredTime;
+        console.log('unansweredTime: ' + unansweredTime + 'sec');
         // adding a random number to demonstrate color changing of '#stat' panel
-        average = (average / counter + Math.floor((Math.random() * 14) + 1)).toFixed(3);
+        // adding unansweredTime
+        average = (average / counter + unansweredTime +Math.floor((Math.random() * 14) + 1)).toFixed(3);
+        unansweredMsgs = 0;
       }
       if (average){
         // adding information to the screen
-        time.innerHTML = average;
+        time.innerHTML = 'Average time: ' + average + 'ms';
         // calculating 'r' and 'g' to make sure the color would be graduantlly changed
         var r = average * 21;
         var g = 255 - r;
@@ -143,7 +165,12 @@ window.onload = function() {
     var message = {msg: messageField.value, timeStart: date.getTime(), counter: counterM};
 
     //using created instance to send message
-    wsForForm.send(message);
+    if (wsForForm.socket.readyState < 3){
+      wsForForm.send(message);
+    } else {
+      wsForForm.open();
+    }
+
   };
 
   // creating an event listener for form close connection button
@@ -182,6 +209,7 @@ window.onload = function() {
   // the interval was set to 1999 to make sure that there is no undefined object in messagesT arrays
   setInterval(function(){liveKeeper.getAverageRoundTripTime()}, 1999);
 
+
   // rgb generator
   function rgbCreater(r, g, b){
     r = Math.floor(r);
@@ -190,3 +218,4 @@ window.onload = function() {
     return ["rgb(",r,",",g,",",b,")"].join("");
   }
 };
+
