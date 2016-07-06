@@ -120,38 +120,49 @@ window.onload = function() {
     this.getAverageRoundTripTime = function () {
       //making sure that we have messages and messageField is not disabled
       if (messagesT.length > 0 && !messageField.disabled){
+
         var average = 0;
-        var counter = 0;
-
-        // trying to read cookies if they were saved before reload
-        var cookiesCount = 0;
-        var cookiesInfo = readCookie('avgTime');
-        cookiesInfo ?  cookiesCount = 1 : cookiesInfo = 0;
 
 
-        // circling through the array and summarising all the times
-        messagesT.forEach(function (entry, index) {
-          if (entry.timeDifference){
-            average += entry.timeDifference;
-            // creating counter to make sure that if there is no 'timeDifference' property our calculations would be correct
-            counter++;
-          } else {
-            // if there are messages without timeDifference it means that server didn't answer
-            unansweredMsgs++;
+        if (messagesT.length === 1){
+            var lastAverageFromCookies = parseFloat(readCookie('avgTime'));
+            if (messagesT[0].timeDifference){
+              average = ((messagesT[0].timeDifference + lastAverageFromCookies)/2).toFixed(3);
+              createCookie('avgTime', average / counter, 1);
+            } else {
+              average = ((2000 + lastAverageFromCookies)/2).toFixed(3);
+            }
+        } else {
+          // circling through the array and summarising all the times
+          var counter = 0;
+          messagesT.forEach(function (entry, index) {
+            if (entry.timeDifference){
+              average += entry.timeDifference;
+              // creating counter to make sure that if there is no 'timeDifference' property our calculations would be correct
+              counter++;
+            } else {
+              // if there are messages without timeDifference it means that server didn't answer
+              unansweredMsgs++;
+            }
+          });
+          // saving cookies with last average
+          createCookie('avgTime', average / counter, 1);
+
+          // calculating time of all messages without answer
+          var unansweredTime = 2 + 2*(unansweredMsgs-1);
+          unansweredTime === 2 ? unansweredTime = 0 : unansweredTime;
+
+          // adding a random number to demonstrate color changing of '#stat' panel
+          // adding unansweredTime
+          average = ((average/ counter + unansweredTime * 1000 +Math.floor((Math.random() * 14) + 1)).toFixed(3));
+          unansweredMsgs = 0;
+
+          // making a drop point if testmessages array becomes too large and it would be complicated for client make calculations
+          if(messagesT[messagesT.length-1].timeDifference && messagesT.length > 42){
+            messagesT = [];
+            counterT = 0;
           }
-        });
-
-        // calculating time of all messages without answer
-        var unansweredTime = 2 + 2*(unansweredMsgs-1);
-        unansweredTime === 2 ? unansweredTime = 0 : unansweredTime;
-
-        // adding a random number to demonstrate color changing of '#stat' panel
-        // adding unansweredTime
-
-        createCookie('avgTime', average / counter, 1);
-
-        average = ((average + parseFloat(cookiesInfo)) / (counter+cookiesCount) + unansweredTime * 1000 +Math.floor((Math.random() * 14) + 1)).toFixed(3);
-        unansweredMsgs = 0;
+        }
       }
       if (average){
         // adding information to the screen
@@ -256,4 +267,3 @@ window.onload = function() {
     createCookie(name,"",-1);
   }
 };
-
