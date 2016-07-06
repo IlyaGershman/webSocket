@@ -123,10 +123,15 @@ window.onload = function() {
 
         var average = 0;
 
-
+        // when the program starts we take cookies, check if they exist, parse them and calculating the average.
+        // if there are no cookies we get first timeDifference as an average
         if (messagesT.length === 1){
-            var lastAverageFromCookies = parseFloat(readCookie('avgTime'));
+            var lastAverageFromCookies = readCookie('avgTime');
+            lastAverageFromCookies ? lastAverageFromCookies = parseFloat(lastAverageFromCookies) : lastAverageFromCookies = 0;
             if (messagesT[0].timeDifference){
+              if(lastAverageFromCookies === 0)
+                lastAverageFromCookies = messagesT[0].timeDifference;
+
               average = ((messagesT[0].timeDifference + lastAverageFromCookies)/2).toFixed(3);
               createCookie('avgTime', average / counter, 1);
             } else {
