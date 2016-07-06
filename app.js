@@ -78,8 +78,6 @@ window.onload = function() {
           var li = document.getElementById('li'+index);
           li.innerHTML = '<div><div class="message">'+ text +'</div><div style="color: green; float: right"> ' +
           'processed(' + messagesM[index].timeDifference.toFixed(3) + 'ms)</div></div>';
-
-          //li.innerHTML = '<tr><td>'+ text +'</td><td>processed(' + messagesM[index].timeDifference + 'ms)</td></tr>';
         };
         // clearing the text area
         messageField.value = '';
