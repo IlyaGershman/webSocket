@@ -23,7 +23,7 @@ window.onload = function() {
       this.socket = new WebSocket('ws://echo.websocket.org');
       console.log(this.socket);
 
-      // making sure that if we receive error text field will be disabled and status test receive red font color
+      // making sure that if we receive error text field will be disabled and status text receive red font color
       this.socket.onerror = function(error) {
         socketStatus.innerHTML = 'Can\'t connect to: ' + event.currentTarget.url;
         socketStatus.className = 'failed';
@@ -122,6 +122,13 @@ window.onload = function() {
       if (messagesT.length > 0 && !messageField.disabled){
         var average = 0;
         var counter = 0;
+
+        // trying to read cookies if they were saved before reload
+        var cookiesCount = 0;
+        var cookiesInfo = readCookie('avgTime');
+        cookiesInfo ?  cookiesCount = 1 : cookiesInfo = 0;
+
+
         // circling through the array and summarising all the times
         messagesT.forEach(function (entry, index) {
           if (entry.timeDifference){
@@ -137,11 +144,13 @@ window.onload = function() {
         // calculating time of all messages without answer
         var unansweredTime = 2 + 2*(unansweredMsgs-1);
         unansweredTime === 2 ? unansweredTime = 0 : unansweredTime;
-        console.log('unansweredTime: ' + unansweredTime + 'sec');
 
         // adding a random number to demonstrate color changing of '#stat' panel
         // adding unansweredTime
-        average = (average / counter + unansweredTime * 1000 +Math.floor((Math.random() * 14) + 1)).toFixed(3);
+
+        createCookie('avgTime', average / counter, 1);
+
+        average = ((average + parseFloat(cookiesInfo)) / (counter+cookiesCount) + unansweredTime * 1000 +Math.floor((Math.random() * 14) + 1)).toFixed(3);
         unansweredMsgs = 0;
       }
       if (average){
@@ -219,6 +228,32 @@ window.onload = function() {
     g = Math.floor(g);
     b = Math.floor(b);
     return ["rgb(",r,",",g,",",b,")"].join("");
+  }
+
+  // cookies pusher/reader/eraser
+  function createCookie(name,value,days) {
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime()+(days*24*60*60*1000));
+      var expires = "; expires="+date.toGMTString();
+    }
+    else var expires = "";
+    document.cookie = name+"="+value+expires+"; path=/";
+  }
+
+  function readCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+      var c = ca[i];
+      while (c.charAt(0)==' ') c = c.substring(1,c.length);
+      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+  }
+
+  function eraseCookie(name) {
+    createCookie(name,"",-1);
   }
 };
 
