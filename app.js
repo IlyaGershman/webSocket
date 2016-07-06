@@ -97,6 +97,7 @@ window.onload = function() {
         }else{
           // if socket is not on ready state trying to open it once again
           this.open();
+          messagesT = [];
         }
       }
     };
@@ -137,15 +138,16 @@ window.onload = function() {
         var unansweredTime = 2 + 2*(unansweredMsgs-1);
         unansweredTime === 2 ? unansweredTime = 0 : unansweredTime;
         console.log('unansweredTime: ' + unansweredTime + 'sec');
+
         // adding a random number to demonstrate color changing of '#stat' panel
         // adding unansweredTime
-        average = (average / counter + unansweredTime +Math.floor((Math.random() * 14) + 1)).toFixed(3);
+        average = (average / counter + unansweredTime * 1000 +Math.floor((Math.random() * 14) + 1)).toFixed(3);
         unansweredMsgs = 0;
       }
       if (average){
         // adding information to the screen
         time.innerHTML = 'Average time: ' + average + 'ms';
-        // calculating 'r' and 'g' to make sure the color would be graduantlly changed
+        // calculating 'r' and 'g' to make sure the color would be graduantaly changed
         var r = average * 21;
         var g = 255 - r;
         statBar.style.backgroundColor = rgbCreater(r,g,30);
@@ -168,6 +170,7 @@ window.onload = function() {
     if (wsForForm.socket.readyState < 3){
       wsForForm.send(message);
     } else {
+      messageField.disabled = true;
       wsForForm.open();
     }
 

@@ -11,7 +11,7 @@
 <div id="page-wrapper">
 
 
-	<div id="status">Connecting...</div>
+	<div id="status" style="visibility: hidden">Connecting...</div>
 	<div class="text" style="float: left">Service status</div><div id="stat"></div><div id="timer" class="text"></div>
 
 
@@ -19,7 +19,7 @@
 	<form id="message-form" action="#" method="post">
 		<textarea id="message" placeholder="Write your message here..." required disabled></textarea>
 		<button type="submit">Send Message</button>
-		<button type="button" id="close">Close Connection</button>
+		<button type="button" id="close" style="visibility: hidden">Close Connection</button>
 	</form>
 	<ul id="messages" ></ul>
 </div>
